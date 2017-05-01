@@ -19,8 +19,8 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+
+    const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
 
     this.state = {
       allComplete: false,
@@ -28,10 +28,29 @@ class App extends Component {
       items: [],
       dataSource: ds.cloneWithRows([])
     };
-    
+
     this.setSource = this.setSource.bind(this);
     this.handleAddItem = this.handleAddItem.bind(this);
     this.handleToggleAllComplete = this.handleToggleAllComplete.bind(this);
+    this.handleToggleComplete = this.handleToggleComplete.bind(this);
+  };
+
+  setSource(items, itemsDatasource, otherState = {}) {
+    this.setState({
+      items,
+      dataSource: this.state.dataSource.cloneWithRows(itemsDatasource),
+      ...otherState
+    })
+  };
+
+  handleToggleAllComplete() {
+    const complete = !this.state.allComplete;
+    const newItems = this.state.items.map((item) => ({
+      ...item,
+      complete
+    }))
+    console.table(newItems);
+    this.setSource(newItems, newItems, { allComplete: complete });
   };
 
   handleAddItem() {
@@ -44,25 +63,41 @@ class App extends Component {
         complete: false
       }
     ];
-    this.setSource(newItems, newItems, {value: ""});
+    this.setSource(newItems, newItems, { value: "" });
   };
 
-  setSource(items, itemsDatasource, otherState){
-    this.setState({
-      items,
-      dataSource: this.state.dataSource.cloneWithRows(itemsDatasource),
-      ...otherState
-    })
-  }
+  handleToggleComplete(key, status) {
+    const newItems = this.state.items.map((item) => {
+      var complete = status;
+      if(item.key !== key) return item;
+      return {
+        ...item,
+        complete
+      }
 
-  handleToggleAllComplete(){
-    const complete = !this.state.allComplete;
-    const newItems = this.state.items.map((item) => ({
-      ...item,
-      complete
-    }))
-    console.table(newItems);
-    this.setSource(newItems, newItems, {allComplete: complete});
+      // below code is enhanced with es6 as above
+      // if (item.ukey !== key) {
+      //   return item
+      // } else {
+      //   return {
+      //     text: item.text,
+      //     ukey: item.uket,
+      //     complete: status
+      //   };
+      // }
+
+    })
+
+    this.setSource(newItems, newItems);
+    // let dsNewValue = this.state.items.filter((item) => {
+    //     if(item.ukey == u_key){
+    //       item.complete = !item.complete;
+    //     }
+    //     return true;
+    //   });
+    // this.setState({
+    //   dataSource: this.state.dataSource.cloneWithRows(dsNewValue)
+    // })
   };
 
   render() {
@@ -80,15 +115,16 @@ class App extends Component {
             enableEmptySections
             dataSource={this.state.dataSource}
             onScroll={() => Keyboard.dismiss}
-            renderRow={ (data, key) => {
-              return (
-                <Row 
-                  key={key}
-                  {...data}
+            renderRow={({key, ...value}) => {
+              return (                
+                <Row
+                  ukey={key} // because we cannot use 'key' as a prop, so we overwrited the spread syntax
+                  {...value}
+                  onComplete={(val) => this.handleToggleComplete(key, val)}
                 />
               )
             }}
-            renderSeparator={({sectionId, rowId}) => {
+            renderSeparator={({ sectionId, rowId }) => {
               return <View key={rowId} style={styles.seperator} />
             }}
           />
