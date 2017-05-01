@@ -11,7 +11,8 @@ import {
   ListView,
   Keyboard,
   Alert,
-  AsyncStorage
+  AsyncStorage,
+  ActivityIndicator
 } from 'react-native';
 import Header from './header';
 import Footer from './footer';
@@ -20,15 +21,15 @@ import Row from './row';
 
 const filterItems = (filter, items) => {
   return items.filter((item) => {
-    switch(filter){
-      case 'all': 
+    switch (filter) {
+      case 'all':
         return true
       case 'active':
         return !item.complete
       case 'completed':
         return item.complete
     };
-  })  
+  })
 }
 
 class App extends Component {
@@ -38,6 +39,7 @@ class App extends Component {
     const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
 
     this.state = {
+      loading: true,
       allComplete: false,
       value: "",
       items: [],
@@ -140,21 +142,23 @@ class App extends Component {
   handleSetFilter(filterType) {
     console.log(filterType);
     debugger
-    this.setSource(this.state.items, filterItems(filterType, this.state.items), {filter: filterType})
+    this.setSource(this.state.items, filterItems(filterType, this.state.items), { filter: filterType })
   }
 
-  handleClearComplete(){
+  handleClearComplete() {
     const newItems = filterItems("active", this.state.items);
     this.setSource(newItems, filterItems(this.state.filter, newItems));
   };
 
-  componentWillMount(){
+  componentWillMount() {
     AsyncStorage.getItem('items').then((response) => {
       try {
         const items = JSON.parse(response);
-        this.setSource(items, items);
-      }catch(e){
-
+        this.setSource(items, items, {loading: false});
+      } catch (e) {
+        this.setState({
+          loading: false
+        })
       }
     })
   }
@@ -195,6 +199,12 @@ class App extends Component {
           filter={this.state.filter}
           onClearComplete={this.handleClearComplete}
         />
+        {this.state.loading && <View style={styles.loading}>
+          <ActivityIndicator
+            animating
+            size="large"
+          />
+        </View>}
       </ View>
     );
   }
@@ -204,6 +214,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5"
+  },
+  loading: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0, .2)'
   },
   content: {
     flex: 1
