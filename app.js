@@ -54,6 +54,8 @@ class App extends Component {
     this.handleDeleteItem = this.handleDeleteItem.bind(this);
     this.handleSetFilter = this.handleSetFilter.bind(this);
     this.handleClearComplete = this.handleClearComplete.bind(this);
+    this.handleUpdateText = this.handleUpdateText.bind(this);
+    this.handleToggleEditing = this.handleToggleEditing.bind(this);
   };
 
   setSource(items, itemsDatasource, otherState = {}) {
@@ -139,6 +141,30 @@ class App extends Component {
     )
   }
 
+  handleUpdateText(key, text) {
+    const newItems = this.state.items.map((item) => {
+      if (item.key !== key) return item;
+      return {
+        ...item,
+        text
+      }
+    })
+
+    this.setSource(newItems, filterItems(this.state.filter, newItems));
+  }
+
+  handleToggleEditing(key, editing) {
+    const newItems = this.state.items.map((item) => {
+      if (item.key !== key) return item;
+      return {
+        ...item,
+        editing
+      }
+    })
+
+    this.setSource(newItems, filterItems(this.state.filter, newItems));
+  }
+
   handleSetFilter(filterType) {
     console.log(filterType);
     debugger
@@ -154,7 +180,7 @@ class App extends Component {
     AsyncStorage.getItem('items').then((response) => {
       try {
         const items = JSON.parse(response);
-        this.setSource(items, items, {loading: false});
+        this.setSource(items, items, { loading: false });
       } catch (e) {
         this.setState({
           loading: false
@@ -185,6 +211,8 @@ class App extends Component {
                   {...value}
                   onComplete={(val) => this.handleToggleComplete(key, val)}
                   deleteItem={() => { this.handleDeleteItem(key) }}
+                  onUpdate={(value) => this.handleUpdateText(key, value)}
+                  onToggleEdit={(editing) => this.handleToggleEditing(key, editing)}
                 />
               )
             }}
