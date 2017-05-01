@@ -16,8 +16,21 @@ import Header from './header';
 import Footer from './footer';
 import Row from './row';
 
-class App extends Component {
 
+const filterItems = (filter, items) => {
+  return items.filter((item) => {
+    switch(filter){
+      case 'all': 
+        return true
+      case 'active':
+        return !item.complete
+      case 'completed':
+        return item.complete
+    };
+  })  
+}
+
+class App extends Component {
   constructor(props) {
     super(props);
 
@@ -27,7 +40,8 @@ class App extends Component {
       allComplete: false,
       value: "",
       items: [],
-      dataSource: ds.cloneWithRows([])
+      dataSource: ds.cloneWithRows([]),
+      filter: "all"
     };
 
     this.setSource = this.setSource.bind(this);
@@ -35,6 +49,7 @@ class App extends Component {
     this.handleToggleAllComplete = this.handleToggleAllComplete.bind(this);
     this.handleToggleComplete = this.handleToggleComplete.bind(this);
     this.handleDeleteItem = this.handleDeleteItem.bind(this);
+    this.handleSetFilter = this.handleSetFilter.bind(this);
   };
 
   setSource(items, itemsDatasource, otherState = {}) {
@@ -52,7 +67,7 @@ class App extends Component {
       complete
     }))
     console.table(newItems);
-    this.setSource(newItems, newItems, { allComplete: complete });
+    this.setSource(newItems, filterItems(this.state.filter, newItems), { allComplete: complete });
   };
 
   handleAddItem() {
@@ -65,7 +80,7 @@ class App extends Component {
         complete: false
       }
     ];
-    this.setSource(newItems, newItems, { value: "" });
+    this.setSource(newItems, filterItems(this.state.filter, newItems), { value: "" });
   };
 
   handleToggleComplete(key, status) {
@@ -90,7 +105,7 @@ class App extends Component {
 
     })
 
-    this.setSource(newItems, newItems);
+    this.setSource(newItems, filterItems(this.state.filter, newItems));
     // let dsNewValue = this.state.items.filter((item) => {
     //     if(item.ukey == u_key){
     //       item.complete = !item.complete;
@@ -112,11 +127,17 @@ class App extends Component {
         {
           text: 'OK', onPress: () => {
             const newItems = this.state.items.filter(item => item.key !== itemKey)
-            this.setSource(newItems, newItems);
+            this.setSource(newItems, filterItems(this.state.filter, newItems));
           }
         }
       ]
     )
+  }
+
+  handleSetFilter(filterType) {
+    console.log(filterType);
+    debugger
+    this.setSource(this.state.items, filterItems(filterType, this.state.items), {filter: filterType})
   }
 
   render() {
@@ -140,7 +161,7 @@ class App extends Component {
                   ukey={key} // because we cannot use 'key' as a prop, so we overwrited the spread syntax
                   {...value}
                   onComplete={(val) => this.handleToggleComplete(key, val)}
-                  deleteItem={() => {this.handleDeleteItem(key)}}
+                  deleteItem={() => { this.handleDeleteItem(key) }}
                 />
               )
             }}
@@ -149,7 +170,10 @@ class App extends Component {
             }}
           />
         </View>
-        <Footer />
+        <Footer
+          setFilter={this.handleSetFilter}
+          filter={this.state.filter}
+        />
       </ View>
     );
   }
