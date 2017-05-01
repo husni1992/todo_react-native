@@ -10,7 +10,8 @@ import {
   Platform,
   ListView,
   Keyboard,
-  Alert
+  Alert,
+  AsyncStorage
 } from 'react-native';
 import Header from './header';
 import Footer from './footer';
@@ -50,6 +51,7 @@ class App extends Component {
     this.handleToggleComplete = this.handleToggleComplete.bind(this);
     this.handleDeleteItem = this.handleDeleteItem.bind(this);
     this.handleSetFilter = this.handleSetFilter.bind(this);
+    this.handleClearComplete = this.handleClearComplete.bind(this);
   };
 
   setSource(items, itemsDatasource, otherState = {}) {
@@ -58,6 +60,7 @@ class App extends Component {
       dataSource: this.state.dataSource.cloneWithRows(itemsDatasource),
       ...otherState
     })
+    AsyncStorage.setItem('items', JSON.stringify(items));
   };
 
   handleToggleAllComplete() {
@@ -140,6 +143,22 @@ class App extends Component {
     this.setSource(this.state.items, filterItems(filterType, this.state.items), {filter: filterType})
   }
 
+  handleClearComplete(){
+    const newItems = filterItems("active", this.state.items);
+    this.setSource(newItems, filterItems(this.state.filter, newItems));
+  };
+
+  componentWillMount(){
+    AsyncStorage.getItem('items').then((response) => {
+      try {
+        const items = JSON.parse(response);
+        this.setSource(items, items);
+      }catch(e){
+
+      }
+    })
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -171,8 +190,10 @@ class App extends Component {
           />
         </View>
         <Footer
+          count={filterItems("active", this.state.items).length}
           setFilter={this.handleSetFilter}
           filter={this.state.filter}
+          onClearComplete={this.handleClearComplete}
         />
       </ View>
     );
