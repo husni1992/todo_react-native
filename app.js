@@ -9,7 +9,8 @@ import {
   View,
   Platform,
   ListView,
-  Keyboard
+  Keyboard,
+  Alert
 } from 'react-native';
 import Header from './header';
 import Footer from './footer';
@@ -33,6 +34,7 @@ class App extends Component {
     this.handleAddItem = this.handleAddItem.bind(this);
     this.handleToggleAllComplete = this.handleToggleAllComplete.bind(this);
     this.handleToggleComplete = this.handleToggleComplete.bind(this);
+    this.handleDeleteItem = this.handleDeleteItem.bind(this);
   };
 
   setSource(items, itemsDatasource, otherState = {}) {
@@ -69,7 +71,7 @@ class App extends Component {
   handleToggleComplete(key, status) {
     const newItems = this.state.items.map((item) => {
       var complete = status;
-      if(item.key !== key) return item;
+      if (item.key !== key) return item;
       return {
         ...item,
         complete
@@ -100,6 +102,23 @@ class App extends Component {
     // })
   };
 
+  handleDeleteItem(itemKey) {
+
+    Alert.alert(
+      'Delete item',
+      'Are you sure you want to delete ?',
+      [
+        { text: 'Cancel', onPress: () => console.log('Cancel Pressed!') },
+        {
+          text: 'OK', onPress: () => {
+            const newItems = this.state.items.filter(item => item.key !== itemKey)
+            this.setSource(newItems, newItems);
+          }
+        }
+      ]
+    )
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -115,12 +134,13 @@ class App extends Component {
             enableEmptySections
             dataSource={this.state.dataSource}
             onScroll={() => Keyboard.dismiss}
-            renderRow={({key, ...value}) => {
-              return (                
+            renderRow={({ key, ...value }) => {
+              return (
                 <Row
                   ukey={key} // because we cannot use 'key' as a prop, so we overwrited the spread syntax
                   {...value}
                   onComplete={(val) => this.handleToggleComplete(key, val)}
+                  deleteItem={() => {this.handleDeleteItem(key)}}
                 />
               )
             }}

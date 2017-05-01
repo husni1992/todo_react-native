@@ -3,7 +3,8 @@ import {
   StyleSheet,
   Text,
   View,
-  Switch
+  Switch,
+  TouchableOpacity
 } from 'react-native';
 
 class Row extends Component {
@@ -19,6 +20,9 @@ class Row extends Component {
           {/*<Text style={complete ? styles.complete : styles.text}>{String(`${this.props.text} - ${this.props.ukey}`)}</Text>*/}
           <Text style={[styles.text, complete && styles.complete]}>{String(this.props.text)}</Text>
         </View>
+        <TouchableOpacity onPress={this.props.deleteItem}>
+          <Text style={styles.destroy}>X</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -42,6 +46,11 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 24,
     color: "#4d4d4d"
+  },
+  destroy: {
+    fontSize: 20,
+    color: "#cc9a9a",
+    marginHorizontal: 10
   }
 })
 
